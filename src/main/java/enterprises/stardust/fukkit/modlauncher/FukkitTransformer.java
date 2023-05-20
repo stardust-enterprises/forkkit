@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
+import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,9 +17,11 @@ import java.util.Set;
  */
 public class FukkitTransformer implements ITransformer<ClassNode> {
     private static final Set<Target> TARGETS = new HashSet<>();
+    private static final String CLASSLOADER_NAME = FukkitTransformingClassLoader.class.getName().replace('.', '/');
+    private static final String TARGET_NAME = "org/bukkit/plugin/java/PluginClassLoader";
 
     static {
-        TARGETS.add(Target.targetClass("org/bukkit/plugin/java/PluginClassLoader"));
+        TARGETS.add(Target.targetClass(TARGET_NAME));
     }
 
     @Override
@@ -26,18 +29,33 @@ public class FukkitTransformer implements ITransformer<ClassNode> {
         input.methods.stream().filter(it -> "<init>".equals(it.name)).forEach(it -> {
             InsnList insnList = new InsnList();
             insnList.add(new VarInsnNode(Opcodes.ALOAD, 2)); // 'parent' param
-            insnList.add(new TypeInsnNode(Opcodes.INSTANCEOF, FukkitTransformingClassLoader.class.getName().replace('.', '/'))); // instanceof
+            insnList.add(new TypeInsnNode(Opcodes.INSTANCEOF, CLASSLOADER_NAME)); // instanceof
             LabelNode label = new LabelNode();
             insnList.add(new JumpInsnNode(Opcodes.IFEQ, label)); // if instanceof
             insnList.add(new VarInsnNode(Opcodes.ALOAD, 2)); // 'parent' param
-            insnList.add(new TypeInsnNode(Opcodes.CHECKCAST, FukkitTransformingClassLoader.class.getName().replace('.', '/'))); // cast
+            insnList.add(new TypeInsnNode(Opcodes.CHECKCAST, CLASSLOADER_NAME)); // cast
             insnList.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-            insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, FukkitTransformingClassLoader.class.getName().replace('.', '/'), "registerChildLoader", "(Ljava/lang/ClassLoader;)V", false)); // call
+            insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, CLASSLOADER_NAME, "registerChildLoader", "(Ljava/lang/ClassLoader;)V", false)); // call
             insnList.add(label);
 
             it.instructions.insertBefore(findLastReturn(it.instructions), insnList);
         });
+        input.methods.stream().filter(it -> "loadClass0".equals(it.name)).forEach(it -> {
+            InsnList insnList = new InsnList();
+            insnList.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+            insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false)); // getClass()
+            insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)); // getClassLoader()
+            insnList.add(new TypeInsnNode(Opcodes.CHECKCAST, CLASSLOADER_NAME)); // cast
+            insnList.add(new VarInsnNode(Opcodes.ALOAD, 1)); // 'name' param
+            insnList.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, CLASSLOADER_NAME, "blockDelegation", "(Ljava/lang/String;)V", false)); // call
+
+            it.instructions.insertBefore(it.instructions.getFirst(), insnList);
+        });
         return input;
+    }
+
+    void test() {
+        ((URLClassLoader) getClass().getClassLoader()).getClass();
     }
 
     @Override

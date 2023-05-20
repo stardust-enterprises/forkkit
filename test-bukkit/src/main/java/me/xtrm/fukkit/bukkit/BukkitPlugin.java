@@ -42,9 +42,8 @@ public class BukkitPlugin extends JavaPlugin implements Listener {
         }
 
         try {
-            Class.forName("unknown/clazz/Name");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            Class.forName("unknown.clazz.Name");
+        } catch (Throwable e) {
         }
 
         if (ENABLE_TEST) {

@@ -12,7 +12,7 @@ import java.util.Set;
 public class FukkitTransformingClassLoader extends TransformingClassLoader {
     private static final Logger LOGGER = LogManager.getLogger();
     private final Set<ClassLoader> childLoaders = new HashSet<>();
-    private final Set<String> lookupStack = new HashSet<>();
+    private final Set<String> blockDelegation = new HashSet<>();
 
     FukkitTransformingClassLoader(TransformStore transformStore, LaunchPluginHandler pluginHandler, TransformingClassLoaderBuilder builder, Environment environment) {
         super(transformStore, pluginHandler, builder, environment);
@@ -20,39 +20,43 @@ public class FukkitTransformingClassLoader extends TransformingClassLoader {
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        synchronized (this.lookupStack) {
-            if (this.lookupStack.contains(name)) {
-                throw new ClassNotFoundException("Circular classloading dependency detected: " + name);
+        try {
+            return super.loadClass(name, resolve);
+        } catch (ClassNotFoundException e) {
+            synchronized (blockDelegation) {
+                if (blockDelegation.contains(name)) {
+                    throw e;
+                }
             }
-            this.lookupStack.add(name);
-            try {
-                Class<?> found = super.loadClass(name, resolve);
-                this.lookupStack.remove(name);
-                return found;
-            } catch (ClassNotFoundException e) {
-                synchronized (getClassLoadingLock(name)) {
-                    for (ClassLoader childLoader : this.childLoaders) {
-                        try {
-                            Class<?> found = childLoader.loadClass(name);
-                            this.lookupStack.remove(name);
-                            return found;
-                        } catch (LinkageError error) {
-                            error.printStackTrace();
-                        } catch (ClassNotFoundException ignored) {
-                        }
+            synchronized (getClassLoadingLock(name)) {
+                for (ClassLoader childLoader : this.childLoaders) {
+                    try {
+                        return childLoader.loadClass(name);
+                    } catch (LinkageError error) {
+                        error.printStackTrace();
+                    } catch (Throwable ignored) {
                     }
                 }
-                throw e;
             }
+            throw e;
         }
     }
 
+    @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
     public void registerChildLoader(ClassLoader loader) {
         LOGGER.info("Registering child classloader: {}", loader);
         this.childLoaders.add(loader);
     }
 
+    @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
+    public void blockDelegation(String name) {
+        synchronized (blockDelegation) {
+            this.blockDelegation.add(name);
+        }
+    }
+
     static {
+        // this *should* be fine
         ClassLoader.registerAsParallelCapable();
     }
 }
