@@ -1,0 +1,5 @@
+name: FukkitTest
+main: me.xtrm.fukkit.bukkit.BukkitPlugin
+version: 1.0.0
+description: A test plugin for Fukkit
+author: xtrm

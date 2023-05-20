@@ -1,0 +1,12 @@
+modLoader="javafml"
+loaderVersion="[1.0.0,)"
+license="CC0"
+
+[[mods]]
+modId="fukkittest"
+version="1.0.0"
+displayName="Fukkit Test Forge"
+displayURL=""
+logoFile="logo.png"
+authors="xtrm <oss@xtrm.me>"
+description=''''''
