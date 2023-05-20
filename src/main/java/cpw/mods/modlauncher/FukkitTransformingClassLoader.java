@@ -12,6 +12,7 @@ import java.util.Set;
 public class FukkitTransformingClassLoader extends TransformingClassLoader {
     private static final Logger LOGGER = LogManager.getLogger();
     private final Set<ClassLoader> childLoaders = new HashSet<>();
+    private final Set<String> lookupStack = new HashSet<>();
 
     FukkitTransformingClassLoader(TransformStore transformStore, LaunchPluginHandler pluginHandler, TransformingClassLoaderBuilder builder, Environment environment) {
         super(transformStore, pluginHandler, builder, environment);
@@ -19,20 +20,30 @@ public class FukkitTransformingClassLoader extends TransformingClassLoader {
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        try {
-            return super.loadClass(name, resolve);
-        } catch (ClassNotFoundException e) {
-            synchronized (getClassLoadingLock(name)) {
-                for (ClassLoader childLoader : this.childLoaders) {
-                    try {
-                        return childLoader.loadClass(name);
-                    } catch (LinkageError error) {
-                        error.printStackTrace();
-                    } catch (ClassNotFoundException ignored) {
+        synchronized (this.lookupStack) {
+            if (this.lookupStack.contains(name)) {
+                throw new ClassNotFoundException("Circular classloading dependency detected: " + name);
+            }
+            this.lookupStack.add(name);
+            try {
+                Class<?> found = super.loadClass(name, resolve);
+                this.lookupStack.remove(name);
+                return found;
+            } catch (ClassNotFoundException e) {
+                synchronized (getClassLoadingLock(name)) {
+                    for (ClassLoader childLoader : this.childLoaders) {
+                        try {
+                            Class<?> found = childLoader.loadClass(name);
+                            this.lookupStack.remove(name);
+                            return found;
+                        } catch (LinkageError error) {
+                            error.printStackTrace();
+                        } catch (ClassNotFoundException ignored) {
+                        }
                     }
                 }
+                throw e;
             }
-            throw e;
         }
     }
 

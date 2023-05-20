@@ -35,7 +35,7 @@ class FukkitDefiner {
                         0,
                         classBytes.length,
                         Launcher.class.getClassLoader(),
-                        null
+                        FukkitDefiner.class.getProtectionDomain()
                 );
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
@@ -58,6 +58,7 @@ class FukkitDefiner {
             while ((read = is.read(buffer)) != -1) {
                 baos.write(buffer, 0, read);
             }
+            is.close();
             return baos.toByteArray();
         } catch (Throwable throwable) {
             throw new RuntimeException("Could not read class bytes for " + className, throwable);
