@@ -2,7 +2,7 @@ allprojects {
     apply(plugin = "java-library")
 
     group = "enterprises.stardust"
-    version = "0.0.1-SNAPSHOT"
+    version = "0.0.2"
 
     repositories {
         mavenCentral()
