@@ -19,6 +19,7 @@ class FukkitDefiner {
             "cpw.mods.modlauncher.FukkitLaunchPlugin",
             "cpw.mods.modlauncher.FukkitTransformationServicesHandler",
             "cpw.mods.modlauncher.FukkitTransformingClassLoader",
+            "cpw.mods.modlauncher.IClassLoaderAccess",
     };
 
     private static final Object unsafeInstance;

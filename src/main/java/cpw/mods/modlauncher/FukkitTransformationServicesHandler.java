@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
  * @author xtrm
  */
 public class FukkitTransformationServicesHandler extends TransformationServicesHandler {
-    public static final Class<?> SUPERCLASS =
-            TransformationServicesHandler.class;
-
     private static TransformStore transformStore;
     private Map<String, TransformationServiceDecorator> serviceLookup;
 
@@ -36,7 +33,7 @@ public class FukkitTransformationServicesHandler extends TransformationServicesH
     }
 
     private static TransformStore fetchTransformStore(Object delegate) {
-        if (delegate.getClass() != SUPERCLASS) {
+        if (delegate.getClass() != TransformationServicesHandler.class) {
             throw new IllegalArgumentException("delegate is not an instance of TransformationServicesHandler");
         }
 

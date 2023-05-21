@@ -2,7 +2,7 @@ allprojects {
     apply(plugin = "java-library")
 
     group = "enterprises.stardust"
-    version = "0.0.4"
+    version = "0.0.5"
 
     repositories {
         mavenCentral()
@@ -22,6 +22,11 @@ allprojects {
                 includeGroup("com.github.xtrm-en")
             }
         }
+        maven("https://maven.mohistmc.com/") {
+            content {
+                includeGroup("com.mohistmc")
+            }
+        }
     }
 
     val shade by configurations.creating {
@@ -38,6 +43,7 @@ allprojects {
         "implementation"("org.spigotmc", "spigot-api", "1.16.+")
 
         if (project == rootProject) {
+            "implementation"("com.mohistmc", "mohistdev", "1.16.5-0.1")
             "implementation"("org.apache.logging.log4j", "log4j-core", "2.14.1")
             "shade"("com.github.xtrm-en", "deencapsulation", "42b829f373")
         }
