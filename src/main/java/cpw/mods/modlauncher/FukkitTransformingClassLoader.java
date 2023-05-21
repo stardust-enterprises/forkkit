@@ -12,7 +12,7 @@ import java.util.Set;
 public class FukkitTransformingClassLoader extends TransformingClassLoader {
     private static final Logger LOGGER = LogManager.getLogger();
     private final Set<ClassLoader> childLoaders = new HashSet<>();
-    private final Set<String> blockDelegation = new HashSet<>();
+    private boolean lockDelegation = false;
 
     FukkitTransformingClassLoader(TransformStore transformStore, LaunchPluginHandler pluginHandler, TransformingClassLoaderBuilder builder, Environment environment) {
         super(transformStore, pluginHandler, builder, environment);
@@ -20,21 +20,19 @@ public class FukkitTransformingClassLoader extends TransformingClassLoader {
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+
         try {
             return super.loadClass(name, resolve);
         } catch (ClassNotFoundException e) {
-            synchronized (blockDelegation) {
-                if (blockDelegation.contains(name)) {
-                    throw e;
-                }
-            }
-            synchronized (getClassLoadingLock(name)) {
-                for (ClassLoader childLoader : this.childLoaders) {
-                    try {
-                        return childLoader.loadClass(name);
-                    } catch (LinkageError error) {
-                        error.printStackTrace();
-                    } catch (Throwable ignored) {
+            if (!lockDelegation) {
+                synchronized (getClassLoadingLock(name)) {
+                    for (ClassLoader childLoader : this.childLoaders) {
+                        try {
+                            return childLoader.loadClass(name);
+                        } catch (LinkageError error) {
+                            error.printStackTrace();
+                        } catch (Throwable ignored) {
+                        }
                     }
                 }
             }
@@ -44,15 +42,18 @@ public class FukkitTransformingClassLoader extends TransformingClassLoader {
 
     @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
     public void registerChildLoader(ClassLoader loader) {
-        LOGGER.info("Registering child classloader: {}", loader);
+        LOGGER.trace("Registering child classloader: {}", loader);
         this.childLoaders.add(loader);
     }
 
     @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
-    public void blockDelegation(String name) {
-        synchronized (blockDelegation) {
-            this.blockDelegation.add(name);
-        }
+    public void lock() {
+        this.lockDelegation = true;
+    }
+
+    @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
+    public void unlock() {
+        this.lockDelegation = false;
     }
 
     static {
