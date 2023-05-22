@@ -24,6 +24,12 @@ public class BukkitPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         getLogger().info("Hello fukkit bukkit :3");
 
+        if (TestTarget.isMixinPatched()) {
+            getLogger().info("Mixin patches are applied!");
+        } else {
+            getLogger().info("Mixin doesn't work :(");
+        }
+
         if (FUKKIT_DEBUG) {
             ClassLoader loader = getClass().getClassLoader();
             int i = 0;
@@ -43,7 +49,7 @@ public class BukkitPlugin extends JavaPlugin implements Listener {
 
         try {
             Class.forName("unknown.clazz.Name");
-        } catch (Throwable e) {
+        } catch (Throwable ignored) {
         }
 
         if (ENABLE_TEST) {

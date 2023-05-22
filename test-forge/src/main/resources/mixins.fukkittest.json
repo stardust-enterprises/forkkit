@@ -1,0 +1,10 @@
+{
+    "compatibilityLevel": "JAVA_8",
+    "minVersion": "0.7",
+    "package": "me.xtrm.fukkit.forge.mixin",
+    "refmap": "mixins.fukkittest.refmap.json",
+    "verbose": true,
+    "mixins": [
+        "TestTargetMixin"
+    ]
+}

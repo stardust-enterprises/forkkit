@@ -1,5 +1,6 @@
 package cpw.mods.modlauncher;
 
+import cpw.mods.modlauncher.api.ITransformerActivity;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +14,11 @@ import java.util.Map;
 public class FukkitHooks {
     private static final Logger LOGGER = LogManager.getLogger();
     public static final boolean IS_MOHIST;
+
+    @SuppressWarnings("unused") // Called reflectively from FukkitTransformationService
+    public static void init() {
+        FukkitHooks.addLaunchPlugin(new FukkitLaunchPlugin());
+    }
 
     public static void addLaunchPlugin(ILaunchPluginService service) {
         try {
@@ -50,24 +56,34 @@ public class FukkitHooks {
         }
     }
 
-    @SuppressWarnings("unused") // Called
-    public static void hookClassLoader(IClassLoaderAccess bukkitClassLoader, ClassLoader parent) {
+    @SuppressWarnings("unused") // Called in bytecode, see FukkitTransformer
+    public static FukkitTransformingClassLoader hookClassLoader(IClassLoaderAccess bukkitClassLoader, ClassLoader parent) {
         if (!(parent instanceof FukkitTransformingClassLoader)) {
-            LOGGER.warn(
-                    "{}'s parent loader is not ours, skipping... ({})",
-                    bukkitClassLoader,
-                    parent
-            );
-            return;
+            throw new RuntimeException("Parent classloader is not a FukkitTransformingClassLoader");
         }
-        LOGGER.info("Adding {} as a child loader", bukkitClassLoader);
         FukkitTransformingClassLoader parentLoader = (FukkitTransformingClassLoader) parent;
         parentLoader.registerChildLoader(bukkitClassLoader);
+        return parentLoader;
     }
 
-    @SuppressWarnings("unused") // Called reflectively from FukkitTransformationService
-    public static void init() {
-        FukkitHooks.addLaunchPlugin(new FukkitLaunchPlugin());
+    @SuppressWarnings("unused") // Called in bytecode, see FukkitTransformer
+    public static byte[] processClass(
+            byte[] classBytes,
+            String path,
+            FukkitTransformingClassLoader ftcl
+    ) {
+        String className = path.substring(0, path.length() - 6).replace('/', '.');
+        boolean swap = ftcl.isLocked();
+        if (swap) {
+            ftcl.unlock();
+        }
+        try {
+            return ftcl.getClassTransformer().transform(classBytes, className, ITransformerActivity.COMPUTING_FRAMES_REASON);
+        } finally {
+            if (swap) {
+                ftcl.lock();
+            }
+        }
     }
 
     static {

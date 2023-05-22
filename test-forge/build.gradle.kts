@@ -1,9 +1,20 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id("dev.architectury.loom") version "1.2.+"
 }
 
 loom {
     silentMojangMappingsLicense()
+
+    forge {
+        val mixinFileName = "mixins.fukkittest.json"
+        mixinConfig(mixinFileName)
+
+        mixin {
+            defaultRefmapName.set(mixinFileName.substring(0, mixinFileName.lastIndexOf('.')) + ".refmap.json")
+        }
+    }
 }
 
 repositories {
