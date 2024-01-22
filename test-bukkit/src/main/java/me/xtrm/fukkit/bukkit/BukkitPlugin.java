@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * @author xtrm
@@ -22,12 +23,13 @@ public class BukkitPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        getLogger().info("Hello fukkit bukkit :3");
+        Logger log = getLogger();
+        log.info("Hello fukkit bukkit :3");
 
         if (TestTarget.isMixinPatched()) {
-            getLogger().info("Mixin patches are applied!");
+            log.info("Mixin patches are applied!");
         } else {
-            getLogger().info("Mixin doesn't work :(");
+            log.info("Mixin doesn't work :(");
         }
 
         if (FUKKIT_DEBUG) {
@@ -42,7 +44,7 @@ public class BukkitPlugin extends JavaPlugin implements Listener {
                     name = loader.getClass().getName() + " (" + Integer.toHexString(loader.getClass().hashCode()) + ")";
                     loader = loader.getParent();
                 }
-                getLogger().info(padding + "- " + name);
+                log.info(padding + "- " + name);
                 i++;
             } while (loader != null);
         }

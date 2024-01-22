@@ -9,6 +9,6 @@ public interface IClassLoaderAccess {
     String METHOD_DESC = "(Ljava/lang/String;)Ljava/lang/Class;";
     String METHOD_SIGNATURE = "(Ljava/lang/String;)Ljava/lang/Class<*>;";
 
-    @SuppressWarnings("unuseld") // used in bytecode, see FukkitTransformer
+    @SuppressWarnings("unused") // used in bytecode, see FukkitTransformer
     Class<?> fukkit$findClassAccessor(String name) throws ClassNotFoundException;
 }

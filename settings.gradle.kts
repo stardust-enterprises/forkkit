@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "fukkit"
+rootProject.name = "forkkit"
 
 include("test-bukkit")
 include("test-forge")

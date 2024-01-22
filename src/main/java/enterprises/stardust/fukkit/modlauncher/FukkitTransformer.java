@@ -248,10 +248,6 @@ public class FukkitTransformer implements ITransformer<ClassNode> {
         return TARGETS;
     }
 
-    private static AbstractInsnNode findLastReturn(InsnList list) {
-        return findLast(list, it -> it.getOpcode() >= Opcodes.IRETURN && it.getOpcode() <= Opcodes.RETURN);
-    }
-
     private static AbstractInsnNode findLast(InsnList list, Predicate<AbstractInsnNode> predicate) {
         for (int i = list.size() - 1; i >= 0; i--) {
             AbstractInsnNode insn = list.get(i);

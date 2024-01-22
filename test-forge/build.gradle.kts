@@ -25,6 +25,7 @@ repositories {
 }
 
 dependencies {
+    // Make the forge mod depend on the bukkit plugin
     compileOnly(project(":test-bukkit"))
 
     minecraft("com.mojang:minecraft:1.16.5")

@@ -59,6 +59,7 @@ public class ForgeMod {
             for (Player it : tickEvent.world.players()) {
                 UUID uuid = it.getUUID();
                 if (displayed.contains(uuid)) return;
+                // Try and access the bukkit plugin's class
                 if (!BukkitPlugin.map.containsKey(uuid)) return;
                 displayed.add(uuid);
                 it.sendMessage(new TextComponent("Your random number (from bukkit) is " + BukkitPlugin.map.get(uuid)), UUID.randomUUID());

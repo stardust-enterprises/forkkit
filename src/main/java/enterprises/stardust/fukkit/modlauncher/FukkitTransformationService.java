@@ -5,6 +5,7 @@ import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.ITransformationService;
 import cpw.mods.modlauncher.api.ITransformer;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -22,23 +23,16 @@ public class FukkitTransformationService implements ITransformationService {
             Collections.singletonList(new FukkitTransformer());
 
     static {
-        LogManager.getLogger().info("Hello Fukkit modlauncher :3");
+        Logger log = LogManager.getLogger();
+        log.info("Hello Fukkit modlauncher :3");
 
-        boolean error = true;
         try {
             FukkitDefiner.defineAll();
-            error = false;
+            Class<?> clazz = Launcher.class.getClassLoader().loadClass("cpw.mods.modlauncher.FukkitHooks");
+            clazz.getMethod("init").invoke(null);
+            log.trace("Initialized FukkitHooks");
         } catch (Throwable e) {
-            e.printStackTrace();
-        }
-
-        if (!error) {
-            try {
-                Class<?> clazz = Launcher.class.getClassLoader().loadClass("cpw.mods.modlauncher.FukkitHooks");
-                clazz.getMethod("init").invoke(null);
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
+            log.error("Failed to initialize FukkitHooks", e);
         }
     }
 
@@ -72,7 +66,7 @@ public class FukkitTransformationService implements ITransformationService {
     }
 
     @Override
-    public void onLoad(@NotNull IEnvironment env, @NotNull Set<String> otherServices)   {
+    public void onLoad(@NotNull IEnvironment env, @NotNull Set<String> otherServices) {
     }
 
     @Override
