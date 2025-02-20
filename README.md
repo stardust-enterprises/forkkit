@@ -1,4 +1,4 @@
-# Forkkit!
+# Forkkit! [![Modrinth Versions](https://img.shields.io/badge/dynamic/json?label=Available%20for&color=4bab62&query=version&url=https://api.blueish.dev/api/minecraft/version?id=forkkit)](https://modrinth.com/mod/forkkit)
 
 ###### Forge + Bukkit! Forkkit!
 
